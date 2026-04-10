@@ -14,21 +14,21 @@ import java.util.Optional;
 
 @Repository
 public interface BookRepository extends MongoRepository<BookDocument, String> {
-    Optional<BookDocument> findByBookId(String bookId);
+Optional<BookDocument> findByBookId(String bookId);
 
-    List<BookDocument> findByTitleContainingIgnoreCase(String title);
+List<BookDocument> findByTitleContainingIgnoreCase(String title);
 
-    List<BookDocument> findByAuthorContainingIgnoreCase(String author);
+List<BookDocument> findByAuthorContainingIgnoreCase(String author);
 
-    Optional<BookDocument> findByIsbn(String isbn);
+Optional<BookDocument> findByIsbn(String isbn);
 
-    Page<BookDocument> findAll(Pageable pageable);
+Page<BookDocument> findAll(Pageable pageable);
 
-    Optional<BookDocument> findByBookIdAndActiveTrue(String bookId);
+Optional<BookDocument> findByBookIdAndActiveTrue(String bookId);
 
-    Page<BookDocument> findByGenre(BookGenre genre, Pageable pageable);
+Page<BookDocument> findByGenre(BookGenre genre, Pageable pageable);
 
-    @Query("{ '$or': [ { 'title': { $regex: ?0, $options: 'i' } }, { 'author': { $regex: ?0, $options: 'i' } }, { 'genre': { $regex: ?0, $options: 'i' } } ] }")
-    Page<BookDocument> searchBooks(String query, Pageable pageable);
+@Query("{ '$or': [ { 'title': { $regex: ?0, $options: 'i' } }, { 'author': { $regex: ?0, $options: 'i' } }, { 'genre': { $regex: ?0, $options: 'i' } } ] }")
+Page<BookDocument> searchBooks(String query, Pageable pageable);
 
 }

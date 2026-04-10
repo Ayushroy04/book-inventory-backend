@@ -41,7 +41,6 @@ public class GlobalExceptionHandler {
                         MethodArgumentNotValidException ex,
                         HttpServletRequest request) {
                 ApiError apiError = new ApiError();
-                apiError.setMessage(ex.getMessage());
                 apiError.setStatus(HttpStatus.BAD_REQUEST.value());
                 apiError.setPath(request.getRequestURI());
                 apiError.setTimestamp(LocalDateTime.now());
@@ -50,8 +49,17 @@ public class GlobalExceptionHandler {
                                 .collect(
                                                 java.util.stream.Collectors.toMap(
                                                                 fieldError -> fieldError.getField(),
-                                                                fieldError -> fieldError.getDefaultMessage()));
+                                                                fieldError -> fieldError.getDefaultMessage(),
+                                                                // keep first message if duplicate field
+                                                                (existing, replacement) -> existing));
                 apiError.setValidationErrors(validationErrors);
+
+                // Build a clean, readable message from the field errors
+                String cleanMessage = validationErrors.entrySet().stream()
+                                .map(e -> e.getKey() + ": " + e.getValue())
+                                .collect(java.util.stream.Collectors.joining("; "));
+                apiError.setMessage(cleanMessage.isEmpty() ? "Validation failed" : cleanMessage);
+
                 return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
         }
 

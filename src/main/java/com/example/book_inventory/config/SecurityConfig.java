@@ -55,7 +55,16 @@ public class SecurityConfig {
                                                 // Content Security Policy
                                                 .contentSecurityPolicy(csp -> csp
                                                                 .policyDirectives(
-                                                                                "default-src 'self'; frame-ancestors 'none';"))
+                                                                                "default-src 'self'; " +
+                                                                                                "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://api.razorpay.com; "
+                                                                                                +
+                                                                                                "frame-src 'self' https://api.razorpay.com https://*.razorpay.com; "
+                                                                                                +
+                                                                                                "connect-src 'self' https://api.razorpay.com https://checkout.razorpay.com; "
+                                                                                                +
+                                                                                                "img-src 'self' data: https:; "
+                                                                                                +
+                                                                                                "frame-ancestors 'none';"))
                                                 // Prevent clickjacking
                                                 .frameOptions(frame -> frame.deny())
                                                 // Prevent MIME type sniffing
