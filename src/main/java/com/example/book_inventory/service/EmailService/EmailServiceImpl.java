@@ -1,23 +1,32 @@
 package com.example.book_inventory.service.EmailService;
 
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
-        private final JavaMailSender mailSender;
+        private final RestTemplate restTemplate = new RestTemplate();
 
         @Value("${spring.mail.username}")
         private String fromEmail;
+
+        @Value("${email.api.key}")
+        private String apiKey;
 
         // ─── Public email methods ─────────────────────────────────────────────────
 
@@ -245,25 +254,40 @@ public class EmailServiceImpl implements EmailService {
                                 + "</table>";
         }
 
-        // ─── MIME Sender ──────────────────────────────────────────────────────────
+        // ─── HTTP API Sender (Brevo) ───────────────────────────────────────────────
 
         private void sendHtml(String to, String subject, String htmlBody) {
-                if (fromEmail == null || fromEmail.trim().isEmpty()) {
-                        log.warn("Email NOT sent. 'spring.mail.username' is not configured in application.properties.");
+                if (fromEmail == null || fromEmail.trim().isEmpty() || apiKey == null || apiKey.trim().isEmpty()) {
+                        log.warn("Email NOT sent. 'spring.mail.username' or 'email.api.key' is not configured.");
                         return;
                 }
                 try {
-                        MimeMessage message = mailSender.createMimeMessage();
-                        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-                        helper.setFrom(fromEmail);
-                        helper.setTo(to);
-                        helper.setSubject(subject);
-                        helper.setText(htmlBody, true); // true = HTML
-                        mailSender.send(message);
-                        log.info("HTML email sent to {} with subject '{}'", to, subject);
+                        String url = "https://api.brevo.com/v3/smtp/email";
+                        
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.setContentType(MediaType.APPLICATION_JSON);
+                        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+                        headers.set("api-key", apiKey);
+                        
+                        Map<String, Object> sender = new HashMap<>();
+                        sender.put("email", fromEmail);
+                        sender.put("name", "BookStore");
+                        
+                        Map<String, Object> recipient = new HashMap<>();
+                        recipient.put("email", to);
+                        
+                        Map<String, Object> payload = new HashMap<>();
+                        payload.put("sender", sender);
+                        payload.put("to", Collections.singletonList(recipient));
+                        payload.put("subject", subject);
+                        payload.put("htmlContent", htmlBody);
+                        
+                        HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+                        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+                        
+                        log.info("HTTP email sent to {} with subject '{}' | Status: {}", to, subject, response.getStatusCode());
                 } catch (Exception e) {
-                        log.error("Failed to send email to {} | Subject: {} | Error: {}", to, subject, e.getMessage(),
-                                        e);
+                        log.error("Failed to send HTTP email to {} | Subject: {} | Error: {}", to, subject, e.getMessage(), e);
                 }
         }
 }
