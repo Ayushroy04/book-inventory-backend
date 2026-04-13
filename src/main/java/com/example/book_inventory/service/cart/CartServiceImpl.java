@@ -179,16 +179,18 @@ public class CartServiceImpl implements CartService {
     // Helper methods
 
     private CartDocument getOrCreateActiveCart(String userId) {
-        return cartRepository.findByUserIdAndStatus(userId, CartStatus.ACTIVE)
-                .orElseGet(() -> {
-                    CartDocument cart = new CartDocument();
-                    cart.setUserId(userId);
-                    cart.setStatus(CartStatus.ACTIVE);
-                    cart.setItems(new ArrayList<>());
-                    cart.setTotalAmount(0.0);
-                    cart.setTotalItems(0);
-                    return cartRepository.save(cart);
-                });
+        List<CartDocument> activeCarts = cartRepository.findByUserIdAndStatus(userId, CartStatus.ACTIVE);
+        if (activeCarts != null && !activeCarts.isEmpty()) {
+            return activeCarts.get(0);
+        }
+        
+        CartDocument cart = new CartDocument();
+        cart.setUserId(userId);
+        cart.setStatus(CartStatus.ACTIVE);
+        cart.setItems(new ArrayList<>());
+        cart.setTotalAmount(0.0);
+        cart.setTotalItems(0);
+        return cartRepository.save(cart);
     }
 
     private void recalculateCart(CartDocument cart) {

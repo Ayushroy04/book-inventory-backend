@@ -13,6 +13,6 @@ public interface CartRepository extends MongoRepository<CartDocument, String> {
 
     //Optional <CartDocument> findByUserId(String userId);
 
-    Optional<CartDocument> findByUserIdAndStatus(String userId, CartStatus status);
+    List<CartDocument> findByUserIdAndStatus(String userId, CartStatus status);
 
 }
