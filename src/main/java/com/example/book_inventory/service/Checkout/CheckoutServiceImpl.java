@@ -19,6 +19,7 @@ import com.example.book_inventory.repository.UserRepository;
 import com.example.book_inventory.service.Checkout.CheckoutService;
 import com.example.book_inventory.service.EmailService.EmailService;
 import com.example.book_inventory.model.User.UserDocument;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,10 +44,12 @@ public class CheckoutServiceImpl implements CheckoutService {
                                                 "User not found with id: " + request.getUserId()));
 
                 // 2) Fetch ACTIVE cart
-                CartDocument cart = cartRepository
-                                .findByUserIdAndStatus(request.getUserId(), CartStatus.ACTIVE)
-                                .orElseThrow(() -> new CartItemNotFoundException(
-                                                "Active cart not found for userId: " + request.getUserId()));
+                List<CartDocument> activeCarts = cartRepository.findByUserIdAndStatus(request.getUserId(), CartStatus.ACTIVE);
+                if (activeCarts == null || activeCarts.isEmpty()) {
+                        throw new CartItemNotFoundException(
+                                        "Active cart not found for userId: " + request.getUserId());
+                }
+                CartDocument cart = activeCarts.get(0);
 
                 if (cart.getItems() == null || cart.getItems().isEmpty()) {
                         throw new CartItemNotFoundException("Cart is empty for userId: " + request.getUserId());
