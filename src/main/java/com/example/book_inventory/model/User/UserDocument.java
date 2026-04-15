@@ -1,5 +1,6 @@
 package com.example.book_inventory.model.User;
 
+import com.example.book_inventory.dto.response.user.Address;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -7,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.List;
 
 
 @Document(collection = "users")
@@ -32,4 +35,8 @@ public class UserDocument {
     private String password;
 
     private Role role;
+
+    private String avatarUrl;
+
+    private List<Address> address;
 }

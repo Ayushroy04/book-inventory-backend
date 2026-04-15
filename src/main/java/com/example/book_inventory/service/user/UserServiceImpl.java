@@ -1,5 +1,6 @@
 package com.example.book_inventory.service.user;
 
+import com.example.book_inventory.dto.request.changePassword.ChangePasswordRequest;
 import com.example.book_inventory.dto.request.user.CreateUserRequest;
 import com.example.book_inventory.dto.request.user.UpdateUserRequest;
 import com.example.book_inventory.dto.response.PageResponse;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserResponse createUser(CreateUserRequest userDto) {
@@ -64,6 +67,9 @@ public class UserServiceImpl implements UserService {
                     response.setUserId(user.getUserId());
                     response.setUsername(user.getUsername());
                     response.setEmail(user.getEmail());
+                    response.setAvatarUrl(user.getAvatarUrl());
+                    response.setPhoneNumber(user.getPhoneNumber());
+                    response.setAddress(user.getAddress());
                     return response;
                 })
                 .collect(Collectors.toList());
@@ -87,6 +93,8 @@ public class UserServiceImpl implements UserService {
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPhoneNumber(request.getPhoneNumber());
+        user.setAvatarUrl(request.getAvatarUrl());
+        user.setAddress(request.getAddress());
 
         UserDocument updatedUser = userRepository.save(user);
 
@@ -94,6 +102,8 @@ public class UserServiceImpl implements UserService {
         response.setUserId(updatedUser.getUserId());
         response.setUsername(updatedUser.getUsername());
         response.setEmail(updatedUser.getEmail());
+        response.setAvatarUrl(updatedUser.getAvatarUrl());
+        response.setAddress(updatedUser.getAddress());
 
         return response;
     }
@@ -113,6 +123,28 @@ public class UserServiceImpl implements UserService {
         response.setUserId(user.getUserId());
         response.setUsername(user.getUsername());
         response.setEmail(user.getEmail());
+        response.setAvatarUrl(user.getAvatarUrl());
+        response.setPhoneNumber(user.getPhoneNumber());
+        response.setAddress(user.getAddress());
         return response;
+    }
+
+    @Override
+    public void changePassword(String userId, ChangePasswordRequest changePasswordRequest) {
+       UserDocument user = userRepository.findById(userId)
+               .orElseThrow(() -> new UserNotFoundException("Change password failed. User not found with ID: " + userId));
+       if(!passwordEncoder.matches(changePasswordRequest.getCurrentPassword(), user.getPassword())) {
+           throw new IllegalArgumentException("Current password is incorrect.");
+       }
+       //Match new password & confirm password
+        if(!changePasswordRequest.getNewPassword().equals(changePasswordRequest.getConfirmNewPassword())) {
+            throw new IllegalArgumentException("Confirm passwords do not match.");
+        }
+        //  Encode new password
+        String encodedPassword = passwordEncoder.encode(changePasswordRequest.getNewPassword());
+
+        //  Update & save
+        user.setPassword(encodedPassword);
+        userRepository.save(user);
     }
 }

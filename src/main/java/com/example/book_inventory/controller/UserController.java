@@ -1,5 +1,6 @@
 package com.example.book_inventory.controller;
 
+import com.example.book_inventory.dto.request.changePassword.ChangePasswordRequest;
 import com.example.book_inventory.dto.request.user.CreateUserRequest;
 import com.example.book_inventory.dto.request.user.UpdateUserRequest;
 import com.example.book_inventory.dto.response.PageResponse;
@@ -53,5 +54,12 @@ public class UserController {
     @PreAuthorize("#userId == authentication.principal.userId or hasRole('ADMIN')")
     public ResponseEntity<UserResponse> getUserByUserId(@PathVariable String userId) {
         return new ResponseEntity<>(userService.getUserByUserId(userId), HttpStatus.OK);
+    }
+
+    @PutMapping("/{userId}/password")
+    @PreAuthorize("#userId == authentication.principal.userId")
+    public ResponseEntity<String> changePassword(@PathVariable String userId, @Valid @RequestBody ChangePasswordRequest request) {
+        userService.changePassword(userId, request);
+        return new ResponseEntity<>("Password updated successfully", HttpStatus.OK);
     }
 }

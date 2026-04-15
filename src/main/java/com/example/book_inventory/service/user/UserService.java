@@ -1,5 +1,6 @@
 package com.example.book_inventory.service.user;
 
+import com.example.book_inventory.dto.request.changePassword.ChangePasswordRequest;
 import com.example.book_inventory.dto.request.user.CreateUserRequest;
 import com.example.book_inventory.dto.request.user.UpdateUserRequest;
 import com.example.book_inventory.dto.response.PageResponse;
@@ -19,5 +20,7 @@ public interface UserService {
     void deleteUser(String userId);
 
     UserResponse getUserByUserId(String userId);
+
+    void changePassword(String userId, ChangePasswordRequest request);
 
 }
