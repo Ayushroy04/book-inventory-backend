@@ -49,6 +49,10 @@ public class PasswordValidator implements ConstraintValidator<ValidPassword, Str
             } else if (!password.matches(".*[@$!%*?&].*")) {
                 context.buildConstraintViolationWithTemplate(
                         "Password must contain at least one special character (@$!%*?&)").addConstraintViolation();
+            } else {
+                context.buildConstraintViolationWithTemplate(
+                        "Password must be 8+ chars with uppercase, lowercase, digit & special char (@$!%*?&)")
+                        .addConstraintViolation();
             }
         }
 
